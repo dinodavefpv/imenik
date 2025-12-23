@@ -1686,7 +1686,8 @@
             ${dotsHtml}
           `;
            cell.addEventListener('click', () => {
-             // Already selected
+             state.currentView = 'day';
+             render();
            });
            grid.appendChild(cell);
            return;
@@ -1724,9 +1725,11 @@
         const cell = document.createElement('div');
         cell.className = 'calendar-day';
         
-        const dayPd = { year: pd.year, month: pd.month, day: day.pbDay };
+        const dayPd = { year: day.pbYear, month: day.pbMonth, day: day.pbDay };
+        const isSelected = isSameDay(dayPd, state.selectedDate);
+        
         if (isSameDay(dayPd, today)) cell.classList.add('today');
-        if (isSameDay(dayPd, state.selectedDate)) cell.classList.add('selected');
+        if (isSelected) cell.classList.add('selected');
         
         const events = getEventsForDate(dayPd);
         const holidays = getHolidaysForDate(day.gregorianDate);
@@ -1734,13 +1737,6 @@
         let dotsHtml = '';
         if (events.length > 0) dotsHtml += '<span class="event-dot"></span>';
         holidays.forEach(h => {
-           // Shift position slightly for multiple dots? For now, just absolute positioning might overlap.
-           // A better approach for multiple dots is a container, but sticking to requested simple absolute dot for now.
-           // If we want them distinct, we might need a container.
-           // Let's assume one main holiday per day or simple overlap is acceptable for this iteration, 
-           // OR we can make a container.
-           // Given the CSS 'top: 4px; right: 4px', they will stack.
-           // Let's rely on the CSS classes provided.
            dotsHtml += `<span class="holiday-dot ${h.type}" title="${state.settings.lang === 'bg' ? h.name.bg : h.name.en}"></span>`;
         });
         
@@ -1751,8 +1747,13 @@
         `;
         
         cell.addEventListener('click', () => {
-          state.selectedDate = { ...state.selectedDate, day: day.pbDay, gregorianDate: day.gregorianDate };
-          render();
+          if (isSelected) {
+            state.currentView = 'day';
+            render();
+          } else {
+            state.selectedDate = { ...state.selectedDate, day: day.pbDay, gregorianDate: day.gregorianDate };
+            render();
+          }
         });
         
         grid.appendChild(cell);
@@ -1784,9 +1785,11 @@
         const events = getEventsForDate(dayPd);
         const holidays = getHolidaysForDate(date);
         const isToday = isSameDay(dayPd, today);
+        const isSelected = isSameDay(dayPd, state.selectedDate);
         
         const row = document.createElement('div');
-        row.className = `week-day-row ${isToday ? 'today' : ''}`;
+        row.className = `week-day-row ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`;
+        if(isSelected) row.style.backgroundColor = 'var(--color-bg-tertiary)'; // Visual feedback for selection if CSS doesn't handle .week-day-row.selected
         
         let dayDisplay = dayPd.day;
         if (dayPd.isEni) dayDisplay = '✦';
@@ -1812,8 +1815,13 @@
         `;
         row.addEventListener('click', (e) => {
           if (!e.target.closest('.event-card')) {
-            state.selectedDate = dayPd;
-            render();
+            if (isSelected) {
+                state.currentView = 'day';
+                render();
+            } else {
+                state.selectedDate = dayPd;
+                render();
+            }
           }
         });
         grid.appendChild(row);
@@ -1848,7 +1856,7 @@
       let holidayHtml = '';
       holidays.forEach(h => {
           const name = state.settings.lang === 'bg' ? h.name.bg : h.name.en;
-          holidayHtml += `<div class="holiday-name holiday-text ${h.type}" style="font-size: 1rem; margin-bottom: 8px;">${name}</div>`;
+          holidayHtml += `<div class="holiday-name holiday-text ${h.type}" style="font-size: 1rem; margin-bottom: 8px; text-align: center;">${name}</div>`;
       });
 
       const container = document.getElementById('day-events');
@@ -1913,9 +1921,13 @@
         `;
         
         card.addEventListener('click', () => {
-          state.selectedDate = { ...state.selectedDate, month: entityId, day: 1 };
-          state.currentView = 'month';
-          render();
+          if (state.selectedDate.month === entityId) {
+            state.currentView = 'month';
+            render();
+          } else {
+            state.selectedDate = { ...state.selectedDate, month: entityId, day: 1 };
+            render();
+          }
         });
         
         grid.appendChild(card);
