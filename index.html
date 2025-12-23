@@ -493,28 +493,6 @@
     .bottom-nav-item:hover { color: var(--color-text-primary); background-color: var(--color-bg-tertiary); }
     .bottom-nav-item span.icon { font-size: 1.5rem; }
 
-    /* ===== FAB ===== */
-    .fab {
-      position: fixed;
-      bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-      right: var(--space-md);
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background-color: var(--color-accent-primary);
-      color: var(--color-text-inverse);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.75rem;
-      box-shadow: var(--shadow-lg);
-      z-index: 50;
-      transition: all var(--transition-fast);
-    }
-
-    .fab:hover { transform: scale(1.05); }
-    .fab:active { transform: scale(0.95); }
-
     /* ===== MODALS ===== */
     .modal-overlay {
       position: fixed;
@@ -1209,7 +1187,7 @@
         
         // 2. Behti
         if ((pbMonth === 13 || pbMonth > 6) && isPBYearLeap(pbYear)) {
-             // If we are AT Behti (13), we don't add it yet (it's the current day calc below)
+             // If we are AT Behti (13), we don't add it yet (it's the current day calc below) 
              // If we are AFTER Behti (Month 7+), we add it.
              if (pbMonth > 6 && pbMonth !== 13) daysToAdd += 1;
         }
@@ -1365,6 +1343,7 @@
 
     function renderWeekdayHeader() {
       const container = document.getElementById('weekday-header');
+      if (!container) return; // Safety check
       container.innerHTML = '';
       
       let weekdays = [...WEEKDAYS];
@@ -1401,8 +1380,9 @@
       
       // If Eni or Behti (single day special view)
       if (pd.month === 0 || pd.month === 13) {
-          document.getElementById('weekday-header').style.display = 'none';
+          if(document.getElementById('weekday-header')) document.getElementById('weekday-header').style.display = 'none';
           const grid = document.getElementById('calendar-grid');
+          if (!grid) return;
           grid.innerHTML = '';
           grid.style.display = 'flex';
           grid.style.justifyContent = 'center';
@@ -1430,14 +1410,15 @@
       }
 
       // Standard Month
-      document.getElementById('weekday-header').style.display = 'grid';
-      document.getElementById('calendar-grid').style.display = 'grid';
-      document.getElementById('calendar-grid').style.justifyContent = 'initial';
-      document.getElementById('calendar-grid').style.padding = '0';
+      if(document.getElementById('weekday-header')) document.getElementById('weekday-header').style.display = 'grid';
+      const grid = document.getElementById('calendar-grid');
+      if (!grid) return;
+      grid.style.display = 'grid';
+      grid.style.justifyContent = 'initial';
+      grid.style.padding = '0';
       
       renderWeekdayHeader();
       
-      const grid = document.getElementById('calendar-grid');
       grid.innerHTML = '';
       
       if (days.length === 0) return;
@@ -1494,6 +1475,7 @@
       
       const today = gregorianToPB(new Date());
       const grid = document.getElementById('week-grid');
+      if (!grid) return;
       grid.innerHTML = '';
       
       for (let i = 0; i < 7; i++) {
@@ -1517,7 +1499,7 @@
             ${state.settings.showGregorian ? `<span class="day-gregorian">${date.getDate()}/${date.getMonth()+1}</span>` : ''}
           </div>
           <div class="week-day-events">
-            ${events.length === 0 ? '<span style="color:var(--color-text-tertiary)">—</span>' : 
+            ${events.length === 0 ? '<span style="color:var(--color-text-tertiary)">—</span>' :
               events.map(e => `<div class="event-card" onclick="openEventModal('${e.id}')"><div class="event-title">${e.title}</div></div>`).join('')}
           </div>
         `;
@@ -1578,6 +1560,7 @@
       document.getElementById('year-title').textContent = pd.year;
       
       const grid = document.getElementById('year-grid');
+      if (!grid) return;
       grid.innerHTML = '';
       
       const structure = getYearStructure(pd.year);
@@ -1628,10 +1611,12 @@
       });
       
       document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
-      document.getElementById(`view-${state.currentView}`).style.display = 'block';
+      if(document.getElementById(`view-${state.currentView}`)) 
+        document.getElementById(`view-${state.currentView}`).style.display = 'block';
       
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(`page-${state.currentPage}`).classList.add('active');
+      if(document.getElementById(`page-${state.currentPage}`)) 
+        document.getElementById(`page-${state.currentPage}`).classList.add('active');
       
       document.querySelectorAll('.bottom-nav-item[data-page]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.page === state.currentPage);
@@ -1640,7 +1625,7 @@
       // Update Bottom Nav Active States (Custom logic for replaced buttons)
       document.getElementById('today-btn').classList.toggle('active', state.currentPage === 'calendar');
       
-      document.getElementById('fab').style.display = 'none'; // Ensure FAB is hidden (removed from HTML but just in case)
+      // Removed FAB display logic because FAB is removed
       
       if (state.currentPage === 'calendar') {
         switch (state.currentView) {
@@ -1655,22 +1640,22 @@
     }
 
     function renderSettings() {
-      document.getElementById('toggle-theme').classList.toggle('active', state.settings.theme === 'traditional');
-      document.getElementById('theme-desc').textContent = state.settings.theme === 'traditional' ? 'Традиционна' : 'Модерна';
+      if(document.getElementById('toggle-theme')) document.getElementById('toggle-theme').classList.toggle('active', state.settings.theme === 'traditional');
+      if(document.getElementById('theme-desc')) document.getElementById('theme-desc').textContent = state.settings.theme === 'traditional' ? 'Традиционна' : 'Модерна';
       
-      document.getElementById('toggle-mode').classList.toggle('active', state.settings.mode === 'dark');
-      document.getElementById('mode-desc').textContent = state.settings.mode === 'light' ? 'Светъл' : 'Тъмен';
+      if(document.getElementById('toggle-mode')) document.getElementById('toggle-mode').classList.toggle('active', state.settings.mode === 'dark');
+      if(document.getElementById('mode-desc')) document.getElementById('mode-desc').textContent = state.settings.mode === 'light' ? 'Светъл' : 'Тъмен';
       
-      document.getElementById('toggle-lang').classList.toggle('active', state.settings.lang === 'bg');
-      document.getElementById('lang-desc').textContent = state.settings.lang === 'bg' ? 'Български' : 'English';
+      if(document.getElementById('toggle-lang')) document.getElementById('toggle-lang').classList.toggle('active', state.settings.lang === 'bg');
+      if(document.getElementById('lang-desc')) document.getElementById('lang-desc').textContent = state.settings.lang === 'bg' ? 'Български' : 'English';
       
-      document.getElementById('toggle-terms').classList.toggle('active', state.settings.useProto);
-      document.getElementById('terms-desc').textContent = state.settings.useProto ? 'Прабългарски' : 'Съвременни';
+      if(document.getElementById('toggle-terms')) document.getElementById('toggle-terms').classList.toggle('active', state.settings.useProto);
+      if(document.getElementById('terms-desc')) document.getElementById('terms-desc').textContent = state.settings.useProto ? 'Прабългарски' : 'Съвременни';
       
-      document.getElementById('toggle-week-start').classList.toggle('active', state.settings.weekStartsOn === 1);
-      document.getElementById('week-start-desc').textContent = state.settings.weekStartsOn === 1 ? 'Понеделник' : 'Неделя';
+      if(document.getElementById('toggle-week-start')) document.getElementById('toggle-week-start').classList.toggle('active', state.settings.weekStartsOn === 1);
+      if(document.getElementById('week-start-desc')) document.getElementById('week-start-desc').textContent = state.settings.weekStartsOn === 1 ? 'Понеделник' : 'Неделя';
       
-      document.getElementById('toggle-gregorian').classList.toggle('active', state.settings.showGregorian);
+      if(document.getElementById('toggle-gregorian')) document.getElementById('toggle-gregorian').classList.toggle('active', state.settings.showGregorian);
     }
 
     // ===== TUTORIAL =====
@@ -1987,41 +1972,41 @@
 
       
       // Settings toggles
-      document.getElementById('toggle-theme').addEventListener('click', () => {
+      if(document.getElementById('toggle-theme')) document.getElementById('toggle-theme').addEventListener('click', () => {
         state.settings.theme = state.settings.theme === 'traditional' ? 'modern' : 'traditional';
         saveSettings();
         render();
       });
-      document.getElementById('toggle-mode').addEventListener('click', () => {
+      if(document.getElementById('toggle-mode')) document.getElementById('toggle-mode').addEventListener('click', () => {
         state.settings.mode = state.settings.mode === 'light' ? 'dark' : 'light';
         saveSettings();
         render();
       });
-      document.getElementById('toggle-lang').addEventListener('click', () => {
+      if(document.getElementById('toggle-lang')) document.getElementById('toggle-lang').addEventListener('click', () => {
         state.settings.lang = state.settings.lang === 'bg' ? 'en' : 'bg';
         saveSettings();
         render();
       });
-      document.getElementById('toggle-terms').addEventListener('click', () => {
+      if(document.getElementById('toggle-terms')) document.getElementById('toggle-terms').addEventListener('click', () => {
         state.settings.useProto = !state.settings.useProto;
         saveSettings();
         render();
       });
-      document.getElementById('toggle-week-start').addEventListener('click', () => {
+      if(document.getElementById('toggle-week-start')) document.getElementById('toggle-week-start').addEventListener('click', () => {
         state.settings.weekStartsOn = state.settings.weekStartsOn === 1 ? 0 : 1;
         saveSettings();
         render();
       });
-      document.getElementById('toggle-gregorian').addEventListener('click', () => {
+      if(document.getElementById('toggle-gregorian')) document.getElementById('toggle-gregorian').addEventListener('click', () => {
         state.settings.showGregorian = !state.settings.showGregorian;
         saveSettings();
         render();
       });
       
       // Tutorial
-      document.getElementById('tutorial-btn').addEventListener('click', showTutorial);
-      document.getElementById('tutorial-skip').addEventListener('click', closeTutorial);
-      document.getElementById('tutorial-next').addEventListener('click', () => {
+      if(document.getElementById('tutorial-btn')) document.getElementById('tutorial-btn').addEventListener('click', showTutorial);
+      if(document.getElementById('tutorial-skip')) document.getElementById('tutorial-skip').addEventListener('click', closeTutorial);
+      if(document.getElementById('tutorial-next')) document.getElementById('tutorial-next').addEventListener('click', () => {
         if (state.tutorialSlide < TUTORIAL_SLIDES.length - 1) {
           state.tutorialSlide++;
           renderTutorial();
@@ -2031,11 +2016,11 @@
       });
       
       // Export/Import
-      document.getElementById('export-btn').addEventListener('click', exportICS);
-      document.getElementById('import-btn').addEventListener('click', () => {
+      if(document.getElementById('export-btn')) document.getElementById('export-btn').addEventListener('click', exportICS);
+      if(document.getElementById('import-btn')) document.getElementById('import-btn').addEventListener('click', () => {
         document.getElementById('import-file').click();
       });
-      document.getElementById('import-file').addEventListener('change', (e) => {
+      if(document.getElementById('import-file')) document.getElementById('import-file').addEventListener('change', (e) => {
         if (e.target.files[0]) importICS(e.target.files[0]);
       });
     }
