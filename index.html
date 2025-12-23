@@ -2130,23 +2130,45 @@
       render();
     }
 
+    // Global Error Handler
+    window.onerror = function(msg, url, line, col, error) {
+      console.error("Global Error:", msg, error);
+      // alert("Error: " + msg + "\nLine: " + line); // Uncomment for aggressive debugging
+    };
+
     // ===== INIT =====
     async function init() {
+      // 1. Initialize DB and Data (Non-blocking failure)
       try {
         await initDB();
         await loadSettings();
         await loadEvents();
-        
-        state.selectedDate = gregorianToPB(new Date());
-        
+      } catch (error) {
+        console.error('Database/Data initialization failed (continuing with defaults):', error);
+      }
+
+      // 2. Initialize State
+      try {
+        if (!state.selectedDate) {
+          state.selectedDate = gregorianToPB(new Date());
+        }
+      } catch (e) {
+        console.error('Failed to calculate initial date:', e);
+        // Fallback to a safe default if calculation fails
+        state.selectedDate = { year: 7530, month: 1, day: 1, isEni: false, isBehti: false, gregorianDate: new Date() };
+      }
+      
+      // 3. Setup UI (Always run)
+      try {
         setupEventListeners();
         render();
         
-        if (!state.settings.tutorialDone) {
+        if (state.settings && !state.settings.tutorialDone) {
           showTutorial();
         }
-      } catch (error) {
-        console.error('Failed to initialize:', error);
+      } catch (e) {
+        console.error('UI Initialization failed:', e);
+        alert('Critical Error: ' + e.message);
       }
     }
 
