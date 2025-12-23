@@ -297,6 +297,7 @@
       position: relative;
       font-family: var(--font-display);
       font-weight: 600;
+      font-size: 1.125rem;
     }
 
     .calendar-day:hover { background-color: var(--color-bg-tertiary); }
@@ -307,9 +308,10 @@
     .calendar-day.behti { background: linear-gradient(135deg, var(--color-special-behti), #3a8); color: var(--color-text-inverse); }
 
     .day-gregorian {
-      font-size: 0.5rem;
+      font-size: 0.65rem;
       opacity: 0.7;
       font-weight: 400;
+      margin-top: 2px;
     }
 
     .event-dot {
@@ -1347,7 +1349,9 @@
           animal: "На 12 години (животински цикъл)",
           starday: "На 60 години (звезден ден)"
         },
-        empty: "📅 Няма събития"
+        empty: "📅 Няма събития",
+        weekdays: ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+        yearOf: "Година на"
       },
       en: {
         tutorial: {
@@ -1417,7 +1421,9 @@
           animal: "Every 12 years (animal cycle)",
           starday: "Every 60 years (star day)"
         },
-        empty: "📅 No events"
+        empty: "📅 No events",
+        weekdays: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+        yearOf: "Year of the"
       }
     };
 
@@ -1437,17 +1443,12 @@
         
         if (val) {
           if (el.tagName === 'INPUT' && el.getAttribute('placeholder')) {
-             // For placeholders (not strictly implemented via data-i18n on input tag in this pass, but good to have)
+             // For placeholders
           } else {
              el.textContent = val;
           }
         }
       });
-      
-      // Dynamic updates that are not simple text replacements
-      // Header Year Text
-      const yearText = lang === 'bg' ? 'Година на' : 'Year of the';
-      // This is handled in updateHeader(), but good to ensure consistency.
     }
 
     // ===== INDEXEDDB =====
@@ -1532,8 +1533,8 @@
       const element = getElementForYear(pd.year);
       const gender = getGenderForYear(pd.year);
       
-      const yearText = state.settings.lang === 'bg' ? 'Година на' : 'Year of the';
-      document.getElementById('header-year').textContent = `${yearText} ${t(animal)} ${pd.year}`;
+      const yearOf = TRANSLATIONS[state.settings.lang].yearOf;
+      document.getElementById('header-year').textContent = `${yearOf} ${t(animal)} ${pd.year}`;
       document.getElementById('header-element').textContent = `${t(element)} • ${t(gender)}`;
       
       // Use dark mode friendly color if in dark mode
@@ -1548,15 +1549,16 @@
       if (!container) return; // Safety check
       container.innerHTML = '';
       
-      let weekdays = [...WEEKDAYS];
+      const langWeekdays = TRANSLATIONS[state.settings.lang].weekdays;
+      let weekdayIndices = [0, 1, 2, 3, 4, 5, 6];
       if (state.settings.weekStartsOn === 1) {
-        weekdays = [...weekdays.slice(1), weekdays[0]];
+        weekdayIndices = [1, 2, 3, 4, 5, 6, 0];
       }
       
-      weekdays.forEach(wd => {
+      weekdayIndices.forEach(idx => {
         const cell = document.createElement('div');
         cell.className = 'weekday-cell';
-        cell.textContent = t(wd);
+        cell.textContent = langWeekdays[idx];
         container.appendChild(cell);
       });
     }
@@ -1680,6 +1682,8 @@
       if (!grid) return;
       grid.innerHTML = '';
       
+      const langWeekdays = TRANSLATIONS[state.settings.lang].weekdays;
+      
       for (let i = 0; i < 7; i++) {
         const date = new Date(startDate);
         date.setDate(date.getDate() + i);
@@ -1696,7 +1700,7 @@
 
         row.innerHTML = `
           <div class="week-day-date">
-            <span class="week-day-name">${t(WEEKDAYS[date.getDay()])}</span>
+            <span class="week-day-name">${langWeekdays[date.getDay()]}</span>
             <span class="week-day-number">${dayDisplay}</span>
             ${state.settings.showGregorian ? `<span class="day-gregorian">${date.getDate()}/${date.getMonth()+1}</span>` : ''}
           </div>
@@ -2322,74 +2326,151 @@
       });
     }
 
-    function navigateMonth(dir) {
-      const struct = getYearStructure(state.selectedDate.year);
-      const currentIdx = struct.indexOf(state.selectedDate.month);
-      
-      let newIdx = currentIdx + dir;
-      let newYear = state.selectedDate.year;
-      
-      if (newIdx >= struct.length) {
-        newYear++;
-        const nextStruct = getYearStructure(newYear);
-        newIdx = 0; // Go to Eni of next year
-        // Update selectedDate to use new struct
-        state.selectedDate = {
-            ...state.selectedDate,
-            year: newYear,
-            month: nextStruct[newIdx],
-            day: 1
-        };
-      } else if (newIdx < 0) {
-        newYear--;
-        const prevStruct = getYearStructure(newYear);
-        newIdx = prevStruct.length - 1; // Go to last month of prev year
-        state.selectedDate = {
-            ...state.selectedDate,
-            year: newYear,
-            month: prevStruct[newIdx],
-            day: 1
-        };
-      } else {
-        // Same year
-        state.selectedDate = {
-            ...state.selectedDate,
-            month: struct[newIdx],
-            day: 1
-        };
+    // ===== TRANSITIONS =====
+    async function transitionHelper(dir, updateStateFn) {
+      const activeView = document.getElementById(`view-${state.currentView}`);
+      if (!activeView) {
+        updateStateFn();
+        return;
       }
       
-      state.selectedDate.gregorianDate = pbToGregorian(state.selectedDate.year, state.selectedDate.month, 1);
-      render();
+      // 1. Snapshot old state (Clone)
+      const oldView = activeView.cloneNode(true);
+      const rect = activeView.getBoundingClientRect();
+      const parent = activeView.parentElement;
+      
+      // If we are already animating, force cleanup (simple approach) or ignore
+      // Ideally, we just proceed.
+      
+      // Prepare parent
+      parent.style.position = 'relative';
+      parent.style.overflow = 'hidden';
+      // parent.style.minHeight = rect.height + 'px'; // Optional: lock height
+      
+      // Configure Old View
+      oldView.style.position = 'absolute';
+      oldView.style.top = activeView.offsetTop + 'px';
+      oldView.style.left = activeView.offsetLeft + 'px';
+      oldView.style.width = rect.width + 'px';
+      oldView.style.height = rect.height + 'px';
+      oldView.style.zIndex = '10';
+      oldView.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+      oldView.style.backgroundColor = 'var(--color-bg-primary)';
+      oldView.removeAttribute('id'); // Avoid duplicate IDs
+      
+      parent.appendChild(oldView);
+      
+      // 2. Update State & Render New View
+      updateStateFn();
+      
+      // 3. Prepare New View
+      // Next (dir=1): New comes from Right (100%), Old goes Left (-100%)
+      // Prev (dir=-1): New comes from Left (-100%), Old goes Right (100%)
+      const startX = dir > 0 ? '100%' : '-100%';
+      const endX = dir > 0 ? '-100%' : '100%';
+      
+      activeView.style.transform = `translateX(${startX})`;
+      activeView.style.opacity = '0';
+      activeView.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+      
+      // Force Reflow
+      activeView.offsetHeight; 
+      
+      // 4. Animate
+      requestAnimationFrame(() => {
+        oldView.style.transform = `translateX(${endX})`;
+        oldView.style.opacity = '0';
+        
+        activeView.style.transform = 'translateX(0)';
+        activeView.style.opacity = '1';
+      });
+      
+      // 5. Cleanup
+      setTimeout(() => {
+        if (oldView.parentElement) oldView.remove();
+        activeView.style.transform = '';
+        activeView.style.opacity = '';
+        activeView.style.transition = '';
+        parent.style.position = '';
+        parent.style.overflow = '';
+      }, 300);
+    }
+
+    function navigateMonth(dir) {
+      transitionHelper(dir, () => {
+        const struct = getYearStructure(state.selectedDate.year);
+        const currentIdx = struct.indexOf(state.selectedDate.month);
+        
+        let newIdx = currentIdx + dir;
+        let newYear = state.selectedDate.year;
+        
+        if (newIdx >= struct.length) {
+          newYear++;
+          const nextStruct = getYearStructure(newYear);
+          newIdx = 0; // Go to Eni of next year
+          state.selectedDate = {
+              ...state.selectedDate,
+              year: newYear,
+              month: nextStruct[newIdx],
+              day: 1
+          };
+        } else if (newIdx < 0) {
+          newYear--;
+          const prevStruct = getYearStructure(newYear);
+          newIdx = prevStruct.length - 1; // Go to last month of prev year
+          state.selectedDate = {
+              ...state.selectedDate,
+              year: newYear,
+              month: prevStruct[newIdx],
+              day: 1
+          };
+        } else {
+          // Same year
+          state.selectedDate = {
+              ...state.selectedDate,
+              month: struct[newIdx],
+              day: 1
+          };
+        }
+        
+        state.selectedDate.gregorianDate = pbToGregorian(state.selectedDate.year, state.selectedDate.month, 1);
+        render();
+      });
     }
 
     function navigateWeek(dir) {
-      const gd = state.selectedDate.gregorianDate || pbToGregorian(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day);
-      const newDate = new Date(gd);
-      newDate.setDate(newDate.getDate() + dir * 7);
-      state.selectedDate = gregorianToPB(newDate);
-      render();
+      transitionHelper(dir, () => {
+        const gd = state.selectedDate.gregorianDate || pbToGregorian(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day);
+        const newDate = new Date(gd);
+        newDate.setDate(newDate.getDate() + dir * 7);
+        state.selectedDate = gregorianToPB(newDate);
+        render();
+      });
     }
 
     function navigateDay(dir) {
-      const gd = state.selectedDate.gregorianDate || pbToGregorian(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day);
-      const newDate = new Date(gd);
-      newDate.setDate(newDate.getDate() + dir);
-      state.selectedDate = gregorianToPB(newDate);
-      render();
+      transitionHelper(dir, () => {
+        const gd = state.selectedDate.gregorianDate || pbToGregorian(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day);
+        const newDate = new Date(gd);
+        newDate.setDate(newDate.getDate() + dir);
+        state.selectedDate = gregorianToPB(newDate);
+        render();
+      });
     }
 
     function navigateYear(dir) {
-      state.selectedDate = { ...state.selectedDate, year: state.selectedDate.year + dir };
-      // Check if current month exists in new year (Behti check)
-      const struct = getYearStructure(state.selectedDate.year);
-      if (!struct.includes(state.selectedDate.month)) {
-          // If was Behti and new year has no Behti, go to Month 7
-          state.selectedDate.month = 7; 
-      }
-      
-      state.selectedDate.gregorianDate = pbToGregorian(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day || 1);
-      render();
+      transitionHelper(dir, () => {
+        state.selectedDate = { ...state.selectedDate, year: state.selectedDate.year + dir };
+        // Check if current month exists in new year (Behti check)
+        const struct = getYearStructure(state.selectedDate.year);
+        if (!struct.includes(state.selectedDate.month)) {
+            // If was Behti and new year has no Behti, go to Month 7
+            state.selectedDate.month = 7; 
+        }
+        
+        state.selectedDate.gregorianDate = pbToGregorian(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day || 1);
+        render();
+      });
     }
 
     async function quickAdd() {
