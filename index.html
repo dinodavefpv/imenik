@@ -621,44 +621,50 @@
 
     .settings-option {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      align-items: flex-start;
       padding: var(--space-md);
       background-color: var(--color-bg-card);
       border-radius: var(--radius-md);
       margin-bottom: var(--space-xs);
       border: 1px solid var(--color-border);
+      gap: var(--space-sm);
+    }
+
+    .settings-option-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .settings-option-title { font-weight: 500; }
-    .settings-option-desc { font-size: 0.75rem; color: var(--color-text-tertiary); }
-
-    .toggle-switch {
-      position: relative;
-      width: 48px;
-      height: 28px;
+    
+    .segmented-control {
+      display: flex;
       background-color: var(--color-bg-tertiary);
-      border-radius: 14px;
+      border-radius: var(--radius-md);
+      padding: 4px;
+      width: 100%;
+    }
+
+    .segmented-option {
+      flex: 1;
+      padding: 6px 12px;
+      text-align: center;
+      border-radius: calc(var(--radius-md) - 2px);
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+      transition: all var(--transition-fast);
       cursor: pointer;
-      transition: background-color var(--transition-fast);
     }
 
-    .toggle-switch.active { background-color: var(--color-accent-primary); }
-
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 24px;
-      height: 24px;
-      background-color: white;
-      border-radius: 50%;
-      transition: transform var(--transition-fast);
+    .segmented-option.active {
+      background-color: var(--color-bg-card);
+      color: var(--color-text-primary);
       box-shadow: var(--shadow-sm);
+      font-weight: 500;
     }
-
-    .toggle-switch.active::after { transform: translateX(20px); }
 
     /* ===== TUTORIAL ===== */
     .tutorial-overlay {
@@ -754,13 +760,13 @@
     <div id="tutorial" class="tutorial-overlay hidden">
       <div class="tutorial-content">
         <div class="tutorial-icon" id="tutorial-icon">📜</div>
-        <h1 class="tutorial-title" id="tutorial-title">Добре дошли в Именник</h1>
-        <p class="tutorial-description" id="tutorial-desc">Открийте древния прабългарски календар - една от най-точните календарни системи в историята.</p>
+        <h1 class="tutorial-title" id="tutorial-title" data-i18n="tutorial.welcome">Добре дошли в Именник</h1>
+        <p class="tutorial-description" id="tutorial-desc" data-i18n="tutorial.welcomeDesc">Открийте древния прабългарски календар - една от най-точните календарни системи в историята.</p>
         <div class="tutorial-dots" id="tutorial-dots"></div>
       </div>
       <div class="tutorial-footer">
-        <button class="tutorial-skip" id="tutorial-skip">Пропусни</button>
-        <button class="btn btn-primary" id="tutorial-next">Напред</button>
+        <button class="tutorial-skip" id="tutorial-skip" data-i18n="tutorial.skip">Пропусни</button>
+        <button class="btn btn-primary" id="tutorial-next" data-i18n="tutorial.next">Напред</button>
       </div>
     </div>
 
@@ -778,10 +784,10 @@
       <!-- Calendar Page -->
       <div id="page-calendar" class="page active">
         <div class="view-switcher">
-          <button class="view-switch-btn active" data-view="month">Месец</button>
-          <button class="view-switch-btn" data-view="week">Седмица</button>
-          <button class="view-switch-btn" data-view="day">Ден</button>
-          <button class="view-switch-btn" data-view="year">Година</button>
+          <button class="view-switch-btn active" data-view="month" data-i18n="view.month">Месец</button>
+          <button class="view-switch-btn" data-view="week" data-i18n="view.week">Седмица</button>
+          <button class="view-switch-btn" data-view="day" data-i18n="view.day">Ден</button>
+          <button class="view-switch-btn" data-view="year" data-i18n="view.year">Година</button>
         </div>
 
         <!-- Month View -->
@@ -799,7 +805,7 @@
         <div id="view-week" class="view" style="display:none;">
           <div class="calendar-header">
             <button class="nav-button" id="prev-week">◀</button>
-            <h2 class="calendar-month-title" id="week-title">Седмица</h2>
+            <h2 class="calendar-month-title" id="week-title" data-i18n="view.week">Седмица</h2>
             <button class="nav-button" id="next-week">▶</button>
           </div>
           <div class="week-view" id="week-grid"></div>
@@ -836,65 +842,95 @@
       <!-- Settings Page -->
       <div id="page-settings" class="page">
         <div class="settings-section">
-          <h3 class="settings-section-title">Изглед</h3>
+          <h3 class="settings-section-title" data-i18n="settings.appearance">Изглед</h3>
           <div class="settings-option">
-            <div><div class="settings-option-title">Тема</div><div class="settings-option-desc" id="theme-desc">Традиционна</div></div>
-            <button class="toggle-switch active" id="toggle-theme"></button>
+            <div class="settings-option-header">
+              <div class="settings-option-title" data-i18n="settings.theme">Тема</div>
+            </div>
+            <div class="segmented-control">
+              <div class="segmented-option" id="opt-theme-traditional" data-value="traditional" data-i18n="settings.traditional">Традиционна</div>
+              <div class="segmented-option" id="opt-theme-modern" data-value="modern" data-i18n="settings.modern">Модерна</div>
+            </div>
           </div>
           <div class="settings-option">
-            <div><div class="settings-option-title">Режим</div><div class="settings-option-desc" id="mode-desc">Тъмен</div></div>
-            <button class="toggle-switch active" id="toggle-mode"></button>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3 class="settings-section-title">Език</h3>
-          <div class="settings-option">
-            <div><div class="settings-option-title">Език</div><div class="settings-option-desc" id="lang-desc">Български</div></div>
-            <button class="toggle-switch active" id="toggle-lang"></button>
-          </div>
-          <div class="settings-option">
-            <div><div class="settings-option-title">Термини</div><div class="settings-option-desc" id="terms-desc">Прабългарски</div></div>
-            <button class="toggle-switch active" id="toggle-terms"></button>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3 class="settings-section-title">Календар</h3>
-          <div class="settings-option">
-            <div><div class="settings-option-title">Начало на седмицата</div><div class="settings-option-desc" id="week-start-desc">Понеделник</div></div>
-            <button class="toggle-switch active" id="toggle-week-start"></button>
-          </div>
-          <div class="settings-option">
-            <div><div class="settings-option-title">Показвай григориански</div></div>
-            <button class="toggle-switch" id="toggle-gregorian"></button>
+            <div class="settings-option-header">
+              <div class="settings-option-title" data-i18n="settings.mode">Режим</div>
+            </div>
+            <div class="segmented-control">
+              <div class="segmented-option" id="opt-mode-light" data-value="light" data-i18n="settings.light">Светъл</div>
+              <div class="segmented-option" id="opt-mode-dark" data-value="dark" data-i18n="settings.dark">Тъмен</div>
+            </div>
           </div>
         </div>
         <div class="settings-section">
-          <h3 class="settings-section-title">Данни</h3>
+          <h3 class="settings-section-title" data-i18n="settings.language">Език</h3>
+          <div class="settings-option">
+            <div class="settings-option-header">
+              <div class="settings-option-title" data-i18n="settings.lang">Език</div>
+            </div>
+            <div class="segmented-control">
+              <div class="segmented-option" id="opt-lang-bg" data-value="bg" data-i18n="settings.bg">Български</div>
+              <div class="segmented-option" id="opt-lang-en" data-value="en" data-i18n="settings.en">English</div>
+            </div>
+          </div>
+          <div class="settings-option">
+            <div class="settings-option-header">
+              <div class="settings-option-title" data-i18n="settings.terms">Термини</div>
+            </div>
+            <div class="segmented-control">
+              <div class="segmented-option" id="opt-terms-proto" data-value="proto" data-i18n="settings.proto">Прабългарски</div>
+              <div class="segmented-option" id="opt-terms-modern" data-value="modern" data-i18n="settings.modernTerms">Съвременни</div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="settings-section-title" data-i18n="settings.calendar">Календар</h3>
+          <div class="settings-option">
+            <div class="settings-option-header">
+              <div class="settings-option-title" data-i18n="settings.weekStart">Начало на седмицата</div>
+            </div>
+            <div class="segmented-control">
+              <div class="segmented-option" id="opt-week-mon" data-value="1" data-i18n="settings.monday">Понеделник</div>
+              <div class="segmented-option" id="opt-week-sun" data-value="0" data-i18n="settings.sunday">Неделя</div>
+            </div>
+          </div>
+          <div class="settings-option">
+            <div class="settings-option-header">
+              <div class="settings-option-title" data-i18n="settings.showGregorian">Показвай григориански</div>
+            </div>
+            <div class="segmented-control">
+              <div class="segmented-option" id="opt-greg-on" data-value="true" data-i18n="settings.yes">Да</div>
+              <div class="segmented-option" id="opt-greg-off" data-value="false" data-i18n="settings.no">Не</div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="settings-section-title" data-i18n="settings.data">Данни</h3>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-secondary" id="export-btn">📥 Експорт ICS</button>
-            <button class="btn btn-secondary" id="import-btn">📤 Импорт ICS</button>
+            <button class="btn btn-secondary" id="export-btn" data-i18n="btn.export">📥 Експорт ICS</button>
+            <button class="btn btn-secondary" id="import-btn" data-i18n="btn.import">📤 Импорт ICS</button>
           </div>
           <input type="file" id="import-file" accept=".ics" style="display:none">
         </div>
         <div class="settings-section">
-          <button class="btn btn-secondary" id="tutorial-btn" style="width:100%">📖 Повтори урока</button>
+          <button class="btn btn-secondary" id="tutorial-btn" style="width:100%" data-i18n="btn.tutorial">📖 Повтори урока</button>
         </div>
       </div>
     </main>
 
     <!-- Bottom Nav -->
     <nav class="bottom-nav">
-      <button class="bottom-nav-item" data-page="settings">
-        <span class="icon">⚙</span>
-        <span>Настройки</span>
+      <button class="bottom-nav-item" id="add-event-btn">
+        <span class="icon">+</span>
+        <span data-i18n="nav.add">Добави</span>
       </button>
       <button class="bottom-nav-item active" id="today-btn">
         <span class="icon">⊙</span>
-        <span>Днес</span>
+        <span data-i18n="nav.today">Днес</span>
       </button>
-      <button class="bottom-nav-item" id="add-event-btn">
-        <span class="icon">+</span>
-        <span>Добави</span>
+      <button class="bottom-nav-item" data-page="settings">
+        <span class="icon">⚙</span>
+        <span data-i18n="nav.settings">Настройки</span>
       </button>
     </nav>
 
@@ -902,20 +938,20 @@
     <div class="modal-overlay hidden" id="event-modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2 class="modal-title" id="modal-title">Добави събитие</h2>
+          <h2 class="modal-title" id="modal-title" data-i18n="modal.addEvent">Добави събитие</h2>
           <button class="nav-button" id="modal-close">✕</button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">Заглавие</label>
+            <label class="form-label" data-i18n="modal.title">Заглавие</label>
             <input type="text" class="form-input" id="event-title" placeholder="Заглавие на събитието">
           </div>
           <div class="form-group">
-            <label class="form-label">Описание</label>
+            <label class="form-label" data-i18n="modal.desc">Описание</label>
             <textarea class="form-textarea" id="event-desc" placeholder="Описание..."></textarea>
           </div>
           <div class="form-group">
-            <label class="form-label">Дата</label>
+            <label class="form-label" data-i18n="modal.date">Дата</label>
             <div class="form-row">
               <select class="form-select" id="event-year"></select>
               <select class="form-select" id="event-month"></select>
@@ -923,7 +959,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Час (по избор)</label>
+            <label class="form-label" data-i18n="modal.time">Час (по избор)</label>
             <div class="form-row">
               <select class="form-select" id="event-hour">
                 <option value="">--</option>
@@ -934,22 +970,22 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Повторение</label>
+            <label class="form-label" data-i18n="modal.recurrence">Повторение</label>
             <select class="form-select" id="event-recurrence">
-              <option value="none">Няма</option>
-              <option value="daily">Дневно</option>
-              <option value="weekly">Седмично</option>
-              <option value="monthly">Месечно</option>
-              <option value="yearly">Годишно</option>
-              <option value="animal">На 12 години (животински цикъл)</option>
-              <option value="starday">На 60 години (звезден ден)</option>
+              <option value="none" data-i18n="rec.none">Няма</option>
+              <option value="daily" data-i18n="rec.daily">Дневно</option>
+              <option value="weekly" data-i18n="rec.weekly">Седмично</option>
+              <option value="monthly" data-i18n="rec.monthly">Месечно</option>
+              <option value="yearly" data-i18n="rec.yearly">Годишно</option>
+              <option value="animal" data-i18n="rec.animal">На 12 години (животински цикъл)</option>
+              <option value="starday" data-i18n="rec.starday">На 60 години (звезден ден)</option>
             </select>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-danger btn-icon" id="event-delete" style="display:none">🗑</button>
-          <button class="btn btn-secondary" id="event-cancel">Отказ</button>
-          <button class="btn btn-primary" id="event-save">Запази</button>
+          <button class="btn btn-secondary" id="event-cancel" data-i18n="btn.cancel">Отказ</button>
+          <button class="btn btn-primary" id="event-save" data-i18n="btn.save">Запази</button>
         </div>
       </div>
     </div>
@@ -1242,10 +1278,176 @@
     }
 
     // ===== LOCALIZATION =====
+    const TRANSLATIONS = {
+      bg: {
+        tutorial: {
+          welcome: "Добре дошли в Именник",
+          welcomeDesc: "Открийте древния прабългарски календар - една от най-точните календарни системи в историята.",
+          skip: "Пропусни",
+          next: "Напред",
+          start: "Започни"
+        },
+        view: {
+          month: "Месец",
+          week: "Седмица",
+          day: "Ден",
+          year: "Година"
+        },
+        settings: {
+          appearance: "Изглед",
+          theme: "Тема",
+          traditional: "Традиционна",
+          modern: "Модерна",
+          mode: "Режим",
+          light: "Светъл",
+          dark: "Тъмен",
+          language: "Език",
+          lang: "Език",
+          bg: "Български",
+          en: "English",
+          terms: "Термини",
+          proto: "Прабългарски",
+          modernTerms: "Съвременни",
+          calendar: "Календар",
+          weekStart: "Начало на седмицата",
+          monday: "Понеделник",
+          sunday: "Неделя",
+          showGregorian: "Показвай григориански",
+          yes: "Да",
+          no: "Не",
+          data: "Данни"
+        },
+        btn: {
+          export: "📥 Експорт ICS",
+          import: "📤 Импорт ICS",
+          tutorial: "📖 Повтори урока",
+          cancel: "Отказ",
+          save: "Запази"
+        },
+        nav: {
+          add: "Добави",
+          today: "Днес",
+          settings: "Настройки"
+        },
+        modal: {
+          addEvent: "Добави събитие",
+          editEvent: "Редактирай събитие",
+          title: "Заглавие",
+          desc: "Описание",
+          date: "Дата",
+          time: "Час (по избор)",
+          recurrence: "Повторение"
+        },
+        rec: {
+          none: "Няма",
+          daily: "Дневно",
+          weekly: "Седмично",
+          monthly: "Месечно",
+          yearly: "Годишно",
+          animal: "На 12 години (животински цикъл)",
+          starday: "На 60 години (звезден ден)"
+        },
+        empty: "📅 Няма събития"
+      },
+      en: {
+        tutorial: {
+          welcome: "Welcome to Imennik",
+          welcomeDesc: "Discover the ancient Proto-Bulgarian calendar - one of the most accurate calendar systems in history.",
+          skip: "Skip",
+          next: "Next",
+          start: "Start"
+        },
+        view: {
+          month: "Month",
+          week: "Week",
+          day: "Day",
+          year: "Year"
+        },
+        settings: {
+          appearance: "Appearance",
+          theme: "Theme",
+          traditional: "Traditional",
+          modern: "Modern",
+          mode: "Mode",
+          light: "Light",
+          dark: "Dark",
+          language: "Language",
+          lang: "Language",
+          bg: "Bulgarian",
+          en: "English",
+          terms: "Terms",
+          proto: "Proto-Bulgarian",
+          modernTerms: "Modern",
+          calendar: "Calendar",
+          weekStart: "Week Start",
+          monday: "Monday",
+          sunday: "Sunday",
+          showGregorian: "Show Gregorian",
+          yes: "Yes",
+          no: "No",
+          data: "Data"
+        },
+        btn: {
+          export: "📥 Export ICS",
+          import: "📤 Import ICS",
+          tutorial: "📖 Replay Tutorial",
+          cancel: "Cancel",
+          save: "Save"
+        },
+        nav: {
+          add: "Add",
+          today: "Today",
+          settings: "Settings"
+        },
+        modal: {
+          addEvent: "Add Event",
+          editEvent: "Edit Event",
+          title: "Title",
+          desc: "Description",
+          date: "Date",
+          time: "Time (optional)",
+          recurrence: "Recurrence"
+        },
+        rec: {
+          none: "None",
+          daily: "Daily",
+          weekly: "Weekly",
+          monthly: "Monthly",
+          yearly: "Yearly",
+          animal: "Every 12 years (animal cycle)",
+          starday: "Every 60 years (star day)"
+        },
+        empty: "📅 No events"
+      }
+    };
+
     function t(obj) {
       if (!obj) return '';
       if (state.settings.useProto && obj.proto) return obj.proto;
       return state.settings.lang === 'bg' ? (obj.bg || obj.en) : obj.en;
+    }
+    
+    function localize() {
+      const lang = state.settings.lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const keys = key.split('.');
+        let val = TRANSLATIONS[lang];
+        keys.forEach(k => { if(val) val = val[k]; });
+        
+        if (val) {
+          if (el.tagName === 'INPUT' && el.getAttribute('placeholder')) {
+             // For placeholders (not strictly implemented via data-i18n on input tag in this pass, but good to have)
+          } else {
+             el.textContent = val;
+          }
+        }
+      });
+      
+      // Dynamic updates that are not simple text replacements
+      // Header Year Text
+      const yearText = lang === 'bg' ? 'Година на' : 'Year of the';
+      // This is handled in updateHeader(), but good to ensure consistency.
     }
 
     // ===== INDEXEDDB =====
@@ -1539,7 +1741,7 @@
       
       const container = document.getElementById('day-events');
       if (events.length === 0) {
-        container.innerHTML = '<div class="empty-state">📅 Няма събития</div>';
+        container.innerHTML = `<div class="empty-state">${TRANSLATIONS[state.settings.lang].empty}</div>`;
       } else {
         container.innerHTML = events.map(e => `
           <div class="event-card" onclick="openEventModal('${e.id}')">
@@ -1603,6 +1805,7 @@
     }
 
     function render() {
+      localize();
       applyTheme();
       updateHeader();
       
@@ -1640,22 +1843,29 @@
     }
 
     function renderSettings() {
-      if(document.getElementById('toggle-theme')) document.getElementById('toggle-theme').classList.toggle('active', state.settings.theme === 'traditional');
-      if(document.getElementById('theme-desc')) document.getElementById('theme-desc').textContent = state.settings.theme === 'traditional' ? 'Традиционна' : 'Модерна';
+      // Theme
+      document.getElementById('opt-theme-traditional').classList.toggle('active', state.settings.theme === 'traditional');
+      document.getElementById('opt-theme-modern').classList.toggle('active', state.settings.theme === 'modern');
       
-      if(document.getElementById('toggle-mode')) document.getElementById('toggle-mode').classList.toggle('active', state.settings.mode === 'dark');
-      if(document.getElementById('mode-desc')) document.getElementById('mode-desc').textContent = state.settings.mode === 'light' ? 'Светъл' : 'Тъмен';
+      // Mode
+      document.getElementById('opt-mode-light').classList.toggle('active', state.settings.mode === 'light');
+      document.getElementById('opt-mode-dark').classList.toggle('active', state.settings.mode === 'dark');
       
-      if(document.getElementById('toggle-lang')) document.getElementById('toggle-lang').classList.toggle('active', state.settings.lang === 'bg');
-      if(document.getElementById('lang-desc')) document.getElementById('lang-desc').textContent = state.settings.lang === 'bg' ? 'Български' : 'English';
+      // Lang
+      document.getElementById('opt-lang-bg').classList.toggle('active', state.settings.lang === 'bg');
+      document.getElementById('opt-lang-en').classList.toggle('active', state.settings.lang === 'en');
       
-      if(document.getElementById('toggle-terms')) document.getElementById('toggle-terms').classList.toggle('active', state.settings.useProto);
-      if(document.getElementById('terms-desc')) document.getElementById('terms-desc').textContent = state.settings.useProto ? 'Прабългарски' : 'Съвременни';
+      // Terms
+      document.getElementById('opt-terms-proto').classList.toggle('active', state.settings.useProto);
+      document.getElementById('opt-terms-modern').classList.toggle('active', !state.settings.useProto);
       
-      if(document.getElementById('toggle-week-start')) document.getElementById('toggle-week-start').classList.toggle('active', state.settings.weekStartsOn === 1);
-      if(document.getElementById('week-start-desc')) document.getElementById('week-start-desc').textContent = state.settings.weekStartsOn === 1 ? 'Понеделник' : 'Неделя';
+      // Week Start
+      document.getElementById('opt-week-mon').classList.toggle('active', state.settings.weekStartsOn === 1);
+      document.getElementById('opt-week-sun').classList.toggle('active', state.settings.weekStartsOn === 0);
       
-      if(document.getElementById('toggle-gregorian')) document.getElementById('toggle-gregorian').classList.toggle('active', state.settings.showGregorian);
+      // Gregorian
+      document.getElementById('opt-greg-on').classList.toggle('active', state.settings.showGregorian);
+      document.getElementById('opt-greg-off').classList.toggle('active', !state.settings.showGregorian);
     }
 
     // ===== TUTORIAL =====
@@ -1893,8 +2103,54 @@
       alert(`Импортирани ${count} събития`);
     }
 
+    // ===== SWIPE GESTURES =====
+    function setupSwipeGestures() {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchEndX = 0;
+      let touchEndY = 0;
+      
+      const mainContent = document.querySelector('.main-content');
+      if (!mainContent) return;
+      
+      mainContent.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+      
+      mainContent.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+      }, { passive: true });
+      
+      function handleSwipe() {
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+        const threshold = 50; // min distance for swipe
+        
+        // Ensure swipe is horizontal and long enough
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
+          // Right swipe (positive diff) -> Previous (direction -1)
+          // Left swipe (negative diff) -> Next (direction 1)
+          const direction = diffX > 0 ? -1 : 1;
+          
+          if (state.currentPage === 'calendar') {
+             switch (state.currentView) {
+               case 'month': navigateMonth(direction); break;
+               case 'week': navigateWeek(direction); break;
+               case 'day': navigateDay(direction); break;
+               case 'year': navigateYear(direction); break;
+             }
+          }
+        }
+      }
+    }
+
     // ===== EVENT LISTENERS =====
     function setupEventListeners() {
+      setupSwipeGestures();
+
       // View switcher
       document.querySelectorAll('.view-switch-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1971,34 +2227,75 @@
       });
 
       
-      // Settings toggles
-      if(document.getElementById('toggle-theme')) document.getElementById('toggle-theme').addEventListener('click', () => {
-        state.settings.theme = state.settings.theme === 'traditional' ? 'modern' : 'traditional';
+      // Settings controls
+      // Theme
+      document.getElementById('opt-theme-traditional').addEventListener('click', () => {
+        state.settings.theme = 'traditional';
         saveSettings();
         render();
       });
-      if(document.getElementById('toggle-mode')) document.getElementById('toggle-mode').addEventListener('click', () => {
-        state.settings.mode = state.settings.mode === 'light' ? 'dark' : 'light';
+      document.getElementById('opt-theme-modern').addEventListener('click', () => {
+        state.settings.theme = 'modern';
         saveSettings();
         render();
       });
-      if(document.getElementById('toggle-lang')) document.getElementById('toggle-lang').addEventListener('click', () => {
-        state.settings.lang = state.settings.lang === 'bg' ? 'en' : 'bg';
+      
+      // Mode
+      document.getElementById('opt-mode-light').addEventListener('click', () => {
+        state.settings.mode = 'light';
         saveSettings();
         render();
       });
-      if(document.getElementById('toggle-terms')) document.getElementById('toggle-terms').addEventListener('click', () => {
-        state.settings.useProto = !state.settings.useProto;
+      document.getElementById('opt-mode-dark').addEventListener('click', () => {
+        state.settings.mode = 'dark';
         saveSettings();
         render();
       });
-      if(document.getElementById('toggle-week-start')) document.getElementById('toggle-week-start').addEventListener('click', () => {
-        state.settings.weekStartsOn = state.settings.weekStartsOn === 1 ? 0 : 1;
+      
+      // Language
+      document.getElementById('opt-lang-bg').addEventListener('click', () => {
+        state.settings.lang = 'bg';
         saveSettings();
         render();
       });
-      if(document.getElementById('toggle-gregorian')) document.getElementById('toggle-gregorian').addEventListener('click', () => {
-        state.settings.showGregorian = !state.settings.showGregorian;
+      document.getElementById('opt-lang-en').addEventListener('click', () => {
+        state.settings.lang = 'en';
+        saveSettings();
+        render();
+      });
+      
+      // Terms
+      document.getElementById('opt-terms-proto').addEventListener('click', () => {
+        state.settings.useProto = true;
+        saveSettings();
+        render();
+      });
+      document.getElementById('opt-terms-modern').addEventListener('click', () => {
+        state.settings.useProto = false;
+        saveSettings();
+        render();
+      });
+      
+      // Week Start
+      document.getElementById('opt-week-mon').addEventListener('click', () => {
+        state.settings.weekStartsOn = 1;
+        saveSettings();
+        render();
+      });
+      document.getElementById('opt-week-sun').addEventListener('click', () => {
+        state.settings.weekStartsOn = 0;
+        saveSettings();
+        render();
+      });
+      
+      // Gregorian
+      document.getElementById('opt-greg-on').addEventListener('click', () => {
+        state.settings.showGregorian = true;
+        saveSettings();
+        render();
+      });
+      document.getElementById('opt-greg-off').addEventListener('click', () => {
+        state.settings.showGregorian = false;
         saveSettings();
         render();
       });
