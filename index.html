@@ -788,7 +788,6 @@
 
     <!-- Header -->
     <header class="header">
-      <button class="nav-button" id="menu-btn">☰</button>
       <div class="header-title">
         <div class="header-year" id="header-year">Година на Змията 7531</div>
         <div class="header-element" id="header-element">Дърво • Женски</div>
@@ -805,11 +804,6 @@
           <button class="view-switch-btn" data-view="week">Седмица</button>
           <button class="view-switch-btn" data-view="day">Ден</button>
           <button class="view-switch-btn" data-view="year">Година</button>
-        </div>
-
-        <div class="quick-add-bar">
-          <input type="text" class="quick-add-input" id="quick-add-input" placeholder="Бързо добавяне на събитие...">
-          <button class="btn btn-primary btn-icon" id="quick-add-btn">+</button>
         </div>
 
         <!-- Month View -->
@@ -870,8 +864,8 @@
             <button class="toggle-switch active" id="toggle-theme"></button>
           </div>
           <div class="settings-option">
-            <div><div class="settings-option-title">Режим</div><div class="settings-option-desc" id="mode-desc">Светъл</div></div>
-            <button class="toggle-switch" id="toggle-mode"></button>
+            <div><div class="settings-option-title">Режим</div><div class="settings-option-desc" id="mode-desc">Тъмен</div></div>
+            <button class="toggle-switch active" id="toggle-mode"></button>
           </div>
         </div>
         <div class="settings-section">
@@ -910,22 +904,19 @@
       </div>
     </main>
 
-    <!-- FAB -->
-    <button class="fab" id="fab">+</button>
-
     <!-- Bottom Nav -->
     <nav class="bottom-nav">
-      <button class="bottom-nav-item active" data-page="calendar">
-        <span class="icon">📅</span>
-        <span>Календар</span>
-      </button>
-      <button class="bottom-nav-item" id="today-btn">
-        <span class="icon">⊙</span>
-        <span>Днес</span>
-      </button>
       <button class="bottom-nav-item" data-page="settings">
         <span class="icon">⚙</span>
         <span>Настройки</span>
+      </button>
+      <button class="bottom-nav-item active" id="today-btn">
+        <span class="icon">⊙</span>
+        <span>Днес</span>
+      </button>
+      <button class="bottom-nav-item" id="add-event-btn">
+        <span class="icon">+</span>
+        <span>Добави</span>
       </button>
     </nav>
 
@@ -1011,11 +1002,11 @@
     ];
 
     const ELEMENTS = [
-      { id: 0, proto: 'ВОДА', bg: 'Вода', en: 'Water', color: '#4A90D9' },
-      { id: 1, proto: 'ОГЪН', bg: 'Огън', en: 'Fire', color: '#E85D04' },
-      { id: 2, proto: 'ЗЕМЯ', bg: 'Земя', en: 'Earth', color: '#8B7355' },
-      { id: 3, proto: 'ДЪРВО', bg: 'Дърво', en: 'Tree', color: '#228B22' },
-      { id: 4, proto: 'МЕТАЛ', bg: 'Метал', en: 'Metal', color: '#71797E' },
+      { id: 0, proto: 'ВОДА', bg: 'Вода', en: 'Water', color: '#4A90D9', colorDark: '#6BA4E4' },
+      { id: 1, proto: 'ОГЪН', bg: 'Огън', en: 'Fire', color: '#E85D04', colorDark: '#FF7F24' },
+      { id: 2, proto: 'ЗЕМЯ', bg: 'Земя', en: 'Earth', color: '#8B7355', colorDark: '#D4C2AA' },
+      { id: 3, proto: 'ДЪРВО', bg: 'Дърво', en: 'Tree', color: '#228B22', colorDark: '#4ADE80' },
+      { id: 4, proto: 'МЕТАЛ', bg: 'Метал', en: 'Metal', color: '#71797E', colorDark: '#A0AEC0' },
     ];
 
     const GENDERS = [
@@ -1063,7 +1054,7 @@
     let state = {
       settings: {
         theme: 'traditional',
-        mode: 'light',
+        mode: 'dark',
         lang: 'bg',
         useProto: true,
         weekStartsOn: 1,
@@ -1355,6 +1346,8 @@
 
     function updateHeader() {
       const pd = state.selectedDate;
+      if (!pd) return; 
+
       const animal = getAnimalForYear(pd.year);
       const element = getElementForYear(pd.year);
       const gender = getGenderForYear(pd.year);
@@ -1362,7 +1355,11 @@
       const yearText = state.settings.lang === 'bg' ? 'Година на' : 'Year of the';
       document.getElementById('header-year').textContent = `${yearText} ${t(animal)} ${pd.year}`;
       document.getElementById('header-element').textContent = `${t(element)} • ${t(gender)}`;
-      document.getElementById('header-element').style.color = element.color;
+      
+      // Use dark mode friendly color if in dark mode
+      const elColor = (state.settings.mode === 'dark' && element.colorDark) ? element.colorDark : element.color;
+      document.getElementById('header-element').style.color = elColor;
+      
       document.getElementById('header-animal').textContent = animal.emoji;
     }
 
@@ -1640,7 +1637,10 @@
         btn.classList.toggle('active', btn.dataset.page === state.currentPage);
       });
       
-      document.getElementById('fab').style.display = state.currentPage === 'calendar' ? 'flex' : 'none';
+      // Update Bottom Nav Active States (Custom logic for replaced buttons)
+      document.getElementById('today-btn').classList.toggle('active', state.currentPage === 'calendar');
+      
+      document.getElementById('fab').style.display = 'none'; // Ensure FAB is hidden (removed from HTML but just in case)
       
       if (state.currentPage === 'calendar') {
         switch (state.currentView) {
@@ -1932,6 +1932,9 @@
         state.currentPage = 'calendar';
         render();
       });
+
+      // Add Event Button (Nav)
+      document.getElementById('add-event-btn').addEventListener('click', () => openEventModal());
       
       // Navigation
       document.getElementById('prev-month').addEventListener('click', () => navigateMonth(-1));
@@ -1943,14 +1946,13 @@
       document.getElementById('prev-year').addEventListener('click', () => navigateYear(-1));
       document.getElementById('next-year').addEventListener('click', () => navigateYear(1));
       
-      // FAB
-      document.getElementById('fab').addEventListener('click', () => openEventModal());
-      
-      // Quick add
-      document.getElementById('quick-add-btn').addEventListener('click', quickAdd);
-      document.getElementById('quick-add-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') quickAdd();
-      });
+      // Quick add (kept for legacy or if needed, though UI might hide it)
+      if(document.getElementById('quick-add-btn')) {
+        document.getElementById('quick-add-btn').addEventListener('click', quickAdd);
+        document.getElementById('quick-add-input').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') quickAdd();
+        });
+      }
       
       // Event modal
       document.getElementById('modal-close').addEventListener('click', closeEventModal);
